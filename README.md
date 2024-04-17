@@ -9,29 +9,19 @@ can handle many end users who are simultaneously manipulating many to-do lists.
 
 Run auto unit-test
 ```sh
-mix test test/todo/server.exs
+mix test
 ```
 
-to check manually
+Play with project in iex-shelll
 ```sh
 iex -S mix
-```
-
-```elixir
-iex(1)> {:ok, todo_server} = Todo.Server.start()
-iex(2)> Todo.Server.add_entry(
-todo_server,
-%{date: ~D[2023-12-19], title: "Dentist"}
-)
-
-iex(3)> Todo.Server.entries(todo_server, ~D[2023-12-19])
-[%{date: ~D[2023-12-19], id: 1, title: "Dentist"}]
 ```
 
 
 ## TODO
 
-develop an infrastructure for handling multiple to-do lists and persisting them to disk.
+- [x] develop an infrastructure for handling multiple to-do lists and persisting them to disk.
+- [ ] datebase pooling and synchronizing
 
 
 ## Installation

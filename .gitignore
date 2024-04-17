@@ -24,3 +24,6 @@ todo-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# database files
+/persist/

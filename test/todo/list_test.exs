@@ -55,8 +55,9 @@ defmodule Todo.ListTest do
       |> Todo.List.update_entry(2, &Map.put(&1, :title, "Updated shopping"))
 
     assert 3 == Todo.List.size(todo_list)
+
     assert [%{title: "Updated shopping"}] =
-      Todo.List.entries(todo_list, ~D[2024-03-20])
+             Todo.List.entries(todo_list, ~D[2024-03-20])
   end
 
   test "delete_entry" do
