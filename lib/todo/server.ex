@@ -4,8 +4,8 @@ defmodule Todo.Server do
   use GenServer
 
   # Client API
-  def start do
-    GenServer.start(__MODULE__, nil)
+  def start(name) do
+    GenServer.start(__MODULE__, name)
   end
 
   def add_entry(pid, new_entry) do
@@ -24,38 +24,47 @@ defmodule Todo.Server do
     GenServer.cast(pid, {:delete_entry, entry_id})
   end
 
-
   # Implementation (Server callbacks
 
   @impl GenServer
-  def init(_) do
-    initial_state = Todo.List.new()
-    {:ok, initial_state}
+  def init(name) do
+    initial_state = {name, nil}
+    {:ok, initial_state, {:continue, :init}}
   end
 
   @impl GenServer
-  def handle_cast({:add_entry, new_entry}, todo_list) do
-    {:noreply, Todo.List.add_entry(todo_list, new_entry)}
+  def handle_continue(:init, {name, nil}) do
+    todo_list = Todo.Database.get(name) || Todo.List.new()
+    new_state = {name, todo_list}
+    {:noreply, new_state}
   end
 
   @impl GenServer
-  def handle_cast({:delete_entry, entry_id}, todo_list) do
-    {:noreply, Todo.List.delete_entry(todo_list, entry_id)}
+  def handle_cast({:add_entry, new_entry}, {name, todo_list}) do
+    new_list = Todo.List.add_entry(todo_list, new_entry)
+    Todo.Database.store(name, new_list)
+    {:noreply, {name, new_list}}
   end
 
   @impl GenServer
-  def handle_cast({:update_entry, entry_id, updater_fun}, todo_list) do
-    {:noreply, Todo.List.update_entry(todo_list, entry_id, updater_fun)}
+  def handle_cast({:delete_entry, entry_id}, {name, todo_list}) do
+    {:noreply, {name, Todo.List.delete_entry(todo_list, entry_id)}}
   end
 
+  @impl GenServer
+  def handle_cast({:update_entry, entry_id, updater_fun}, {name, todo_list}) do
+    {:noreply, {name, Todo.List.update_entry(todo_list, entry_id, updater_fun)}}
+  end
+
+  @impl GenServer
   def handle_cast(request, state) do
     dbg(request)
     {:noreply, state}
   end
 
   @impl GenServer
-  def handle_call({:entries, date}, _from, todo_list) do
-    {:reply, Todo.List.entries(todo_list, date), todo_list}
+  def handle_call({:entries, date}, _from, {name, todo_list}) do
+    {:reply, Todo.List.entries(todo_list, date), {name, todo_list}}
   end
 
   @impl GenServer
@@ -64,6 +73,3 @@ defmodule Todo.Server do
     {:replay, :invalid_request, state}
   end
 end
-
-
-
