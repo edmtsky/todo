@@ -1,35 +1,58 @@
-# 17-04-2024 @author Edmtsky
 defmodule Todo.DatabaseTest do
   use ExUnit.Case
 
   setup do
-    Todo.Database.testing_only_cleanup()
+    Todo.Database.testing_only_cleanup_disk()
     :ok
   end
 
-  test "serialize& desirialize data to the disk" do
-    {:ok, cache_1} = Todo.Cache.start()
+  describe "init db - create workers" do
+    setup do
+      Todo.Database.testing_only_stop_all_db()
+      :ok
+    end
 
-    mylist = Todo.Cache.server_process(cache_1, "mylist")
+    test "init with workers" do
+      Todo.Database.start()
+      state = Todo.Database.workers()
 
-    Todo.Server.add_entry(
-      mylist,
-      %{date: ~D[2024-04-17], title: "Programming"}
-    )
+      assert 3 == map_size(state)
+      assert true == is_pid(Map.get(state, 0))
+      assert true == is_pid(Map.get(state, 1))
+      assert true == is_pid(Map.get(state, 2))
+    end
+  end
 
-    entries = Todo.Server.entries(mylist, ~D[2024-04-17])
-    assert [%{id: 1, date: ~D[2024-04-17], title: "Programming"}] == entries
+  describe "select_worker by keyname based on erlang.phash2 [0-2]" do
+    setup do
+      Todo.Database.testing_only_stop_all_db()
+      :ok
+    end
 
-    # emulate system restart
+    test "select_worker" do
+      Todo.Database.start()
+      worker_pid1a = Todo.Database.select_worker("a-list")
+      worker_pid1b = Todo.Database.select_worker("a-list")
+      worker_pid2a = Todo.Database.select_worker("b-list")
+      worker_pid2b = Todo.Database.select_worker("b-list")
+      worker_pid3a = Todo.Database.select_worker("c-list")
+      worker_pid3b = Todo.Database.select_worker("c-list")
 
-    Todo.Cache.testing_only_stop(cache_1)
-    Process.sleep(100)
-    assert false == Process.alive?(mylist)
-    assert false == Process.alive?(cache_1)
+      assert true == is_pid(worker_pid1a)
+      assert true == is_pid(worker_pid1b)
+      assert worker_pid1a == worker_pid1b
 
-    {:ok, cache_2} = Todo.Cache.start()
-    mylist_2 = Todo.Cache.server_process(cache_2, "mylist")
-    entries_2 = Todo.Server.entries(mylist_2, ~D[2024-04-17])
-    assert [%{id: 1, date: ~D[2024-04-17], title: "Programming"}] == entries_2
+      assert true == is_pid(worker_pid2a)
+      assert true == is_pid(worker_pid2b)
+      assert worker_pid2a == worker_pid2b
+
+      assert true == is_pid(worker_pid3a)
+      assert true == is_pid(worker_pid3b)
+      assert worker_pid3a == worker_pid3b
+
+      assert worker_pid1a != worker_pid2a
+      assert worker_pid3a != worker_pid1a
+      assert worker_pid3a != worker_pid2a
+    end
   end
 end
