@@ -1,5 +1,6 @@
 defmodule Todo.Database do
   use GenServer
+  use Todo.Utils
 
   @db_directory "./persist"
 
@@ -21,7 +22,10 @@ defmodule Todo.Database do
     Todo.DatabaseWorker.get(worker, key)
   end
 
-  def select_worker(key) do
+  # Selecting a worker makes a request to the database server process. There we
+  # keep the knowledge about our workers, and return the pid of the corresponding
+  # worker. Once this is done, the caller process will talk to the worker directly.
+  defp_testable select_worker(key) do
     GenServer.call(__MODULE__, {:select_worker, key})
   end
 
@@ -30,15 +34,7 @@ defmodule Todo.Database do
   @impl GenServer
   def init(_) do
     File.mkdir_p!(@db_directory)
-
-    state =
-      0..2
-      |> Enum.reduce(%{}, fn n, acc ->
-        {:ok, worker_pid} = Todo.DatabaseWorker.start(@db_directory)
-        Map.put(acc, n, worker_pid)
-      end)
-
-    {:ok, state}
+    {:ok, start_workers()}
   end
 
   @impl GenServer
@@ -99,13 +95,20 @@ defmodule Todo.Database do
     end
   end
 
+  defp start_workers() do
+    for index <- 1..3, into: %{} do
+      {:ok, worker_pid} = Todo.DatabaseWorker.start(@db_directory)
+      {index - 1, worker_pid}
+    end
+  end
+
   # --------------------------------------------------------------------------
   #                            testing helpers
 
   @doc """
   remove all files from persist directory "ceanup all db-records"
   """
-  def testing_only_cleanup_disk() do
+  defp_testable cleanup_disk() do
     {:ok, files} = File.ls(@db_directory)
 
     files
@@ -115,21 +118,23 @@ defmodule Todo.Database do
   @doc """
   for testing - show inner state map of n->worker_pid
   """
-  def workers() do
+  defp_testable workers() do
     GenServer.call(__MODULE__, {:workers})
   end
+
+  # def testing_select_worker(key) do select_worker(key) end
 
   @doc """
   for testing - stop worker by its index in map(0-2)
   """
-  def stop_worker(idx, reason \\ :normal) do
+  defp_testable stop_worker(idx, reason \\ :normal) do
     GenServer.cast(__MODULE__, {:stop_worker, idx, reason})
   end
 
   @doc """
   stop the entire database and all db-workers
   """
-  def testing_only_stop_all_db() do
+  defp_testable stop_all_db() do
     pid = Process.whereis(__MODULE__)
 
     if is_pid(pid) do

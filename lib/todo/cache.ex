@@ -1,5 +1,6 @@
 defmodule Todo.Cache do
   use GenServer
+  use Todo.Utils
 
   # Client API
   def start do
@@ -67,12 +68,12 @@ defmodule Todo.Cache do
   close the to-do sever process and leaving the to-do list data on the disk
   (remove todo-server-process from memory)
   """
-  def testing_only_close_process(cache_pid, todo_list_name) do
+  defp_testable close_process(cache_pid, todo_list_name) do
     GenServer.call(cache_pid, {:close_process, todo_list_name})
   end
 
-  def testing_only_stop(cache_pid) do
+  defp_testable stop(cache_pid) do
     GenServer.cast(cache_pid, {:close_all_process})
-    Todo.Database.testing_only_stop_all_db()
+    Todo.Database.stop_all_db()
   end
 end
