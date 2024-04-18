@@ -4,7 +4,7 @@ defmodule Todo.DatabaseWorkerTest do
   @db_directory "./persist"
 
   setup do
-    Todo.Database.testing_only_cleanup_disk()
+    Todo.Database.cleanup_disk()
     :ok
   end
 

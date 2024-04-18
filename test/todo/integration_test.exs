@@ -1,9 +1,8 @@
 defmodule Todo.IntegrationTest do
   use ExUnit.Case
-  # alias Todo.Database, as: DB
 
   setup do
-    Todo.Database.testing_only_cleanup_disk()
+    Todo.Database.cleanup_disk()
     :ok
   end
 
@@ -27,8 +26,8 @@ defmodule Todo.IntegrationTest do
       assert true == Process.alive?(cache_1)
       assert true == is_pid(Process.whereis(Todo.Database))
 
-      Todo.Cache.testing_only_stop(cache_1)
-      Todo.Database.testing_only_stop_all_db()
+      Todo.Cache.stop(cache_1)
+      Todo.Database.stop_all_db()
       Process.sleep(100)
 
       # ensure off

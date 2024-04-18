@@ -1,14 +1,15 @@
 defmodule Todo.DatabaseTest do
   use ExUnit.Case
+  alias Todo.Database, as: DB
 
   setup do
-    Todo.Database.testing_only_cleanup_disk()
+    DB.cleanup_disk()
     :ok
   end
 
   describe "init db - create workers" do
     setup do
-      Todo.Database.testing_only_stop_all_db()
+      DB.stop_all_db()
       :ok
     end
 
@@ -25,18 +26,18 @@ defmodule Todo.DatabaseTest do
 
   describe "select_worker by keyname based on erlang.phash2 [0-2]" do
     setup do
-      Todo.Database.testing_only_stop_all_db()
+      DB.stop_all_db()
       :ok
     end
 
     test "select_worker" do
       Todo.Database.start()
-      worker_pid1a = Todo.Database.select_worker("a-list")
-      worker_pid1b = Todo.Database.select_worker("a-list")
-      worker_pid2a = Todo.Database.select_worker("b-list")
-      worker_pid2b = Todo.Database.select_worker("b-list")
-      worker_pid3a = Todo.Database.select_worker("c-list")
-      worker_pid3b = Todo.Database.select_worker("c-list")
+      worker_pid1a = DB.select_worker("a-list")
+      worker_pid1b = DB.select_worker("a-list")
+      worker_pid2a = DB.select_worker("b-list")
+      worker_pid2b = DB.select_worker("b-list")
+      worker_pid3a = DB.select_worker("c-list")
+      worker_pid3b = DB.select_worker("c-list")
 
       assert true == is_pid(worker_pid1a)
       assert true == is_pid(worker_pid1b)

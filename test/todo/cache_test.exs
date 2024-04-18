@@ -2,8 +2,8 @@ defmodule Todo.CacheTest do
   use ExUnit.Case
 
   setup do
-    Todo.Database.testing_only_cleanup_disk()
-    Todo.Database.testing_only_stop_all_db()
+    Todo.Database.cleanup_disk()
+    Todo.Database.stop_all_db()
     :ok
   end
 
@@ -15,7 +15,7 @@ defmodule Todo.CacheTest do
       assert bob_pid == Todo.Cache.server_process(cache, "bob-list")
       assert bob_pid != Todo.Cache.server_process(cache, "alice-list")
 
-      Todo.Cache.testing_only_stop(cache)
+      Todo.Cache.stop(cache)
     end
   end
 
@@ -40,27 +40,27 @@ defmodule Todo.CacheTest do
 
       assert [] == alices_entries
 
-      Todo.Cache.testing_only_stop(cache)
+      Todo.Cache.stop(cache)
     end
   end
 
   describe "tooling" do
     # close Todo.Server in runtime
-    test "testing_only_close_process" do
+    test "close_process(Todo.Server)" do
       {:ok, cache} = Todo.Cache.start()
       bobs_list = Todo.Cache.server_process(cache, "bob-list")
       assert true == Process.alive?(bobs_list)
 
-      assert bobs_list == Todo.Cache.testing_only_close_process(cache, "bob-list")
+      assert bobs_list == Todo.Cache.close_process(cache, "bob-list")
       assert false == Process.alive?(bobs_list)
     end
 
-    test "testing_only_stop whole cache with Todo.Server processes" do
+    test "stop whole cache with Todo.Server processes and Database" do
       {:ok, cache} = Todo.Cache.start()
       bobs_list = Todo.Cache.server_process(cache, "bob-list")
       assert true == Process.alive?(bobs_list)
 
-      Todo.Cache.testing_only_stop(cache)
+      Todo.Cache.stop(cache)
       Process.sleep(100)
       assert false == Process.alive?(cache)
       assert false == Process.alive?(bobs_list)

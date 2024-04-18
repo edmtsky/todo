@@ -2,8 +2,8 @@ defmodule TodoTest do
   use ExUnit.Case
 
   setup do
-    Todo.Database.testing_only_cleanup_disk()
-    Todo.Database.testing_only_stop_all_db()
+    Todo.Database.cleanup_disk()
+    Todo.Database.stop_all_db()
     Todo.Database.start()
     :ok
   end
