@@ -1,9 +1,9 @@
 defmodule TodoTest do
   use ExUnit.Case
-  # doctest Todo
 
   setup do
-    Todo.Database.testing_only_cleanup()
+    Todo.Database.testing_only_cleanup_disk()
+    Todo.Database.testing_only_stop_all_db()
     Todo.Database.start()
     :ok
   end
@@ -15,7 +15,8 @@ defmodule TodoTest do
       todo_server,
       %{date: ~D[2024-04-17], title: "Programming"}
     )
-    assert true == Process.alive? todo_server
+
+    assert true == Process.alive?(todo_server)
 
     entries = Todo.Server.entries(todo_server, ~D[2024-04-17])
     assert [%{date: ~D[2024-04-17], id: 1, title: "Programming"}] == entries

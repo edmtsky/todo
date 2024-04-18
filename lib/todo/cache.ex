@@ -71,8 +71,8 @@ defmodule Todo.Cache do
     GenServer.call(cache_pid, {:close_process, todo_list_name})
   end
 
-  def testing_only_stop(cache_pid, reason \\ :normal) do
+  def testing_only_stop(cache_pid) do
     GenServer.cast(cache_pid, {:close_all_process})
-    GenServer.stop(Todo.Database, reason)
+    Todo.Database.testing_only_stop_all_db()
   end
 end

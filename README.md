@@ -12,7 +12,7 @@ Run auto unit-test
 mix test
 ```
 
-Play with project in iex-shelll
+Play with project in iex-shell
 ```sh
 iex -S mix
 ```
@@ -21,7 +21,7 @@ iex -S mix
 ## TODO
 
 - [x] develop an infrastructure for handling multiple to-do lists and persisting them to disk.
-- [ ] datebase pooling and synchronizing
+- [x] datebase pooling and synchronizing
 
 
 ## Installation
