@@ -24,4 +24,15 @@ defmodule Todo.Utils do
       end
     end
   end
+
+  @doc """
+  debuggins output into console in :dev mode
+  The goal is to be silent in tests
+  TODO rewrite to macro
+  """
+  def dputs(msg) do
+    if Mix.env() == :dev do
+      IO.puts(msg)
+    end
+  end
 end

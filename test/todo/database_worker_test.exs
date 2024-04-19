@@ -9,7 +9,7 @@ defmodule Todo.DatabaseWorkerTest do
   end
 
   test "serialize & desirialize data to disk" do
-    {:ok, worker_pid} = Todo.DatabaseWorker.start(@db_directory)
+    {:ok, worker_pid} = Todo.DatabaseWorker.start_link(@db_directory)
 
     # serialize to disk
     Todo.DatabaseWorker.store(worker_pid, "name", {:data, :some_value})
