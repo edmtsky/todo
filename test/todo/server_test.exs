@@ -4,12 +4,12 @@ defmodule TodoTest do
   setup do
     Todo.Database.cleanup_disk()
     Todo.Database.stop_all_db()
-    Todo.Database.start()
+    Todo.Database.start_link()
     :ok
   end
 
   test "smoke test(initial)" do
-    {:ok, todo_server} = Todo.Server.start("mylist")
+    {:ok, todo_server} = Todo.Server.start_link("mylist")
 
     Todo.Server.add_entry(
       todo_server,

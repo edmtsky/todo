@@ -9,21 +9,21 @@ defmodule Todo.CacheTest do
 
   describe "1" do
     test "server_process" do
-      {:ok, cache} = Todo.Cache.start()
-      bob_pid = Todo.Cache.server_process(cache, "bob-list")
+      {:ok, _cache} = Todo.Cache.start_link(nil)
+      bob_pid = Todo.Cache.server_process("bob-list")
 
-      assert bob_pid == Todo.Cache.server_process(cache, "bob-list")
-      assert bob_pid != Todo.Cache.server_process(cache, "alice-list")
+      assert bob_pid == Todo.Cache.server_process("bob-list")
+      assert bob_pid != Todo.Cache.server_process("alice-list")
 
-      Todo.Cache.stop(cache)
+      Todo.Cache.stop()
     end
   end
 
   describe "2" do
     test "todo-operations" do
-      {:ok, cache} = Todo.Cache.start()
+      {:ok, _cache} = Todo.Cache.start_link(nil)
 
-      bobs_list = Todo.Cache.server_process(cache, "bob-list")
+      bobs_list = Todo.Cache.server_process("bob-list")
 
       Todo.Server.add_entry(
         bobs_list,
@@ -35,32 +35,32 @@ defmodule Todo.CacheTest do
       assert [%{id: 1, date: ~D[2024-04-17], title: "Dentist"}] == bobs_entries
 
       alices_entries =
-        Todo.Cache.server_process(cache, "alice-list")
+        Todo.Cache.server_process("alice-list")
         |> Todo.Server.entries(~D[2024-04-17])
 
       assert [] == alices_entries
 
-      Todo.Cache.stop(cache)
+      Todo.Cache.stop()
     end
   end
 
   describe "tooling" do
     # close Todo.Server in runtime
     test "close_process(Todo.Server)" do
-      {:ok, cache} = Todo.Cache.start()
-      bobs_list = Todo.Cache.server_process(cache, "bob-list")
+      {:ok, _cache} = Todo.Cache.start_link(nil)
+      bobs_list = Todo.Cache.server_process("bob-list")
       assert true == Process.alive?(bobs_list)
 
-      assert bobs_list == Todo.Cache.close_process(cache, "bob-list")
+      assert bobs_list == Todo.Cache.close_process("bob-list")
       assert false == Process.alive?(bobs_list)
     end
 
     test "stop whole cache with Todo.Server processes and Database" do
-      {:ok, cache} = Todo.Cache.start()
-      bobs_list = Todo.Cache.server_process(cache, "bob-list")
+      {:ok, cache} = Todo.Cache.start_link(nil)
+      bobs_list = Todo.Cache.server_process("bob-list")
       assert true == Process.alive?(bobs_list)
 
-      Todo.Cache.stop(cache)
+      Todo.Cache.stop()
       Process.sleep(100)
       assert false == Process.alive?(cache)
       assert false == Process.alive?(bobs_list)

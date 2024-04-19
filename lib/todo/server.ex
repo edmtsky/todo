@@ -2,10 +2,11 @@ defmodule Todo.Server do
   @moduledoc """
   """
   use GenServer
+  use Todo.Utils
 
   # Client API
-  def start(name) do
-    GenServer.start(__MODULE__, name)
+  def start_link(name) do
+    GenServer.start_link(__MODULE__, name)
   end
 
   def add_entry(pid, new_entry) do
@@ -28,6 +29,7 @@ defmodule Todo.Server do
 
   @impl GenServer
   def init(name) do
+    dputs("Starting to-do server for #{name}.")
     initial_state = {name, nil}
     {:ok, initial_state, {:continue, :init}}
   end

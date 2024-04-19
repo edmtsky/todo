@@ -14,7 +14,7 @@ defmodule Todo.DatabaseTest do
     end
 
     test "init with workers" do
-      Todo.Database.start()
+      Todo.Database.start_link()
       state = Todo.Database.workers()
 
       assert 3 == map_size(state)
@@ -31,7 +31,7 @@ defmodule Todo.DatabaseTest do
     end
 
     test "select_worker" do
-      Todo.Database.start()
+      Todo.Database.start_link()
       worker_pid1a = DB.select_worker("a-list")
       worker_pid1b = DB.select_worker("a-list")
       worker_pid2a = DB.select_worker("b-list")

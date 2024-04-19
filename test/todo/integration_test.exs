@@ -8,9 +8,9 @@ defmodule Todo.IntegrationTest do
 
   describe "persisting data(Todo.Cache, Todo.Database" do
     test "serialize & deserialize data to the disk" do
-      {:ok, cache_1} = Todo.Cache.start()
+      {:ok, cache_1} = Todo.Cache.start_link(nil)
 
-      mylist = Todo.Cache.server_process(cache_1, "mylist")
+      mylist = Todo.Cache.server_process("mylist")
 
       Todo.Server.add_entry(
         mylist,
@@ -26,7 +26,7 @@ defmodule Todo.IntegrationTest do
       assert true == Process.alive?(cache_1)
       assert true == is_pid(Process.whereis(Todo.Database))
 
-      Todo.Cache.stop(cache_1)
+      Todo.Cache.stop()
       Todo.Database.stop_all_db()
       Process.sleep(100)
 
@@ -36,13 +36,14 @@ defmodule Todo.IntegrationTest do
       assert nil == Process.whereis(Todo.Database)
 
       # restart the system
-      {:ok, cache_2} = Todo.Cache.start()
+      {:ok, cache_2} = Todo.Cache.start_link(nil)
       assert true == is_pid(Process.whereis(Todo.Database))
 
-      mylist_2 = Todo.Cache.server_process(cache_2, "mylist")
+      mylist_2 = Todo.Cache.server_process("mylist")
       entries_2 = Todo.Server.entries(mylist_2, ~D[2024-04-17])
 
       assert [%{id: 1, date: ~D[2024-04-17], title: "Programming"}] == entries_2
+      assert cache_2 != cache_1
     end
   end
 end
