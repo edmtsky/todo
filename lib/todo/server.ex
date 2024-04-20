@@ -59,8 +59,8 @@ defmodule Todo.Server do
   end
 
   @impl GenServer
-  def handle_cast(request, state) do
-    dbg(request)
+  def handle_cast(invalid_request, state) do
+    dbg(invalid_request)
     {:noreply, state}
   end
 

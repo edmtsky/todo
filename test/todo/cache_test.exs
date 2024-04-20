@@ -1,53 +1,71 @@
 defmodule Todo.CacheTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
 
   setup do
     Todo.Database.cleanup_disk()
-    Todo.Database.stop_all_db()
     :ok
   end
 
-  describe "1" do
-    test "server_process" do
-      {:ok, _cache} = Todo.Cache.start_link(nil)
-      bob_pid = Todo.Cache.server_process("bob-list")
+  test "server_process" do
+    Todo.System.start_link()
+    Process.sleep(250)
+    bob_pid = Todo.Cache.server_process("bob-list")
 
-      assert bob_pid == Todo.Cache.server_process("bob-list")
-      assert bob_pid != Todo.Cache.server_process("alice-list")
+    assert bob_pid == Todo.Cache.server_process("bob-list")
+    assert bob_pid != Todo.Cache.server_process("alice-list")
 
-      Todo.Cache.stop()
-    end
+    Todo.Cache.stop()
   end
 
-  describe "2" do
-    test "todo-operations" do
-      {:ok, _cache} = Todo.Cache.start_link(nil)
+  test "todo-operations" do
+    Todo.System.start_link()
+    Process.sleep(250)
 
-      bobs_list = Todo.Cache.server_process("bob-list")
+    jane_list = Todo.Cache.server_process("jane-list")
 
-      Todo.Server.add_entry(
-        bobs_list,
-        %{date: ~D[2024-04-17], title: "Dentist"}
-      )
+    Todo.Server.add_entry(
+      jane_list,
+      %{date: ~D[2024-04-17], title: "Dentist"}
+    )
 
-      bobs_entries = Todo.Server.entries(bobs_list, ~D[2024-04-17])
+    entries = Todo.Server.entries(jane_list, ~D[2024-04-17])
 
-      assert [%{id: 1, date: ~D[2024-04-17], title: "Dentist"}] == bobs_entries
+    assert [%{date: ~D[2024-04-17], title: "Dentist"}] = entries
 
-      alices_entries =
-        Todo.Cache.server_process("alice-list")
-        |> Todo.Server.entries(~D[2024-04-17])
+    alices_entries =
+      Todo.Cache.server_process("alice-list")
+      |> Todo.Server.entries(~D[2024-04-17])
 
-      assert [] == alices_entries
+    assert [] == alices_entries
 
-      Todo.Cache.stop()
-    end
+    Todo.Cache.stop()
+  end
+
+  test "persistence" do
+    {:ok, supervisor} = Todo.System.start_link()
+    Process.sleep(250)
+
+    john = Todo.Cache.server_process("john")
+    Todo.Server.add_entry(john, %{date: ~D[2024-04-20], title: "Shopping"})
+    assert 1 == length(Todo.Server.entries(john, ~D[2024-04-20]))
+
+    # emulate system restart
+    Supervisor.stop(supervisor)
+    Todo.System.start_link()
+
+    entries =
+      "john"
+      |> Todo.Cache.server_process()
+      |> Todo.Server.entries(~D[2024-04-20])
+
+    assert [%{date: ~D[2024-04-20], title: "Shopping"}] = entries
   end
 
   describe "tooling" do
     # close Todo.Server in runtime
     test "close_process(Todo.Server)" do
-      {:ok, _cache} = Todo.Cache.start_link(nil)
+      Todo.System.start_link()
+      Process.sleep(250)
       bobs_list = Todo.Cache.server_process("bob-list")
       assert true == Process.alive?(bobs_list)
 
@@ -56,13 +74,19 @@ defmodule Todo.CacheTest do
     end
 
     test "stop whole cache with Todo.Server processes and Database" do
-      {:ok, cache} = Todo.Cache.start_link(nil)
+      {:ok, supervisor} = Todo.System.start_link()
+      Process.sleep(250)
+      cache = Process.whereis(Todo.Cache)
       bobs_list = Todo.Cache.server_process("bob-list")
       assert true == Process.alive?(bobs_list)
 
-      Todo.Cache.stop()
+      # restart the entire system
+      Supervisor.stop(supervisor)
+      Todo.System.start_link()
       Process.sleep(100)
+
       assert false == Process.alive?(cache)
+      assert true == Process.alive?(Process.whereis(Todo.Cache))
       assert false == Process.alive?(bobs_list)
     end
   end
