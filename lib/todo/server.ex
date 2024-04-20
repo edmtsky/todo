@@ -1,12 +1,12 @@
 defmodule Todo.Server do
   @moduledoc """
   """
-  use GenServer
+  use GenServer, restart: :temporary
   use Todo.Utils
 
   # Client API
   def start_link(name) do
-    GenServer.start_link(__MODULE__, name)
+    GenServer.start_link(__MODULE__, name, name: via_tuple(name))
   end
 
   def add_entry(pid, new_entry) do
@@ -23,6 +23,10 @@ defmodule Todo.Server do
 
   def delete_entry(pid, entry_id) do
     GenServer.cast(pid, {:delete_entry, entry_id})
+  end
+
+  defp via_tuple(name) do
+    Todo.ProcessRegistry.via_tuple({__MODULE__, name})
   end
 
   # Implementation (Server callbacks
