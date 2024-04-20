@@ -68,6 +68,30 @@ defmodule Todo.CacheTest do
     Supervisor.stop(supervisor2)
   end
 
+  test "stop whole cache with Todo.Server processes" do
+    {:ok, supervisor} = Todo.System.start_link()
+    Process.sleep(250)
+
+    bobs_list_pid = Todo.Cache.server_process("bob-list")
+    assert true == Process.alive?(bobs_list_pid)
+    assert is_pid(bobs_list_pid)
+
+    bobs_list_pid2 = Todo.Cache.server_process("bob-list")
+    assert bobs_list_pid == bobs_list_pid2
+
+    alices_list_pid = Todo.Cache.server_process("alice-list")
+
+    Process.exit(bobs_list_pid, :kill)
+    Process.sleep(100)
+    bobs_list_pid3 = Todo.Cache.server_process("bob-list")
+    assert bobs_list_pid != bobs_list_pid3
+
+    assert false == Process.alive?(bobs_list_pid)
+    assert true == Process.alive?(alices_list_pid)
+
+    Supervisor.stop(supervisor)
+  end
+
   describe "tooling" do
     test "start_link - auto terminate todoserver on a cache down" do
       {:ok, supervisor} = Todo.System.start_link()
@@ -87,20 +111,6 @@ defmodule Todo.CacheTest do
       cache_pid_2 = Process.whereis(Todo.Cache)
       assert true == Process.alive?(cache_pid_2)
       assert cache_pid != cache_pid_2
-
-      Supervisor.stop(supervisor)
-    end
-
-    # close Todo.Server in runtime
-    test "close_process(Todo.Server)" do
-      {:ok, supervisor} = Todo.System.start_link()
-      Process.sleep(250)
-
-      bobs_list = Todo.Cache.server_process("bob-list")
-      assert true == Process.alive?(bobs_list)
-
-      assert bobs_list == Todo.Cache.close_process("bob-list")
-      assert false == Process.alive?(bobs_list)
 
       Supervisor.stop(supervisor)
     end
