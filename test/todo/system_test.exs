@@ -1,6 +1,5 @@
-# 19-04-2024 @author Edmtsky
 defmodule Todo.SystemTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
 
   describe "Todo.system" do
     test "link all processes in one tree" do

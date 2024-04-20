@@ -16,7 +16,6 @@ defmodule Todo.Cache do
   @impl GenServer
   def init(_) do
     dputs("Starting to-do cache.")
-    Todo.Database.start_link()
     {:ok, %{}}
   end
 
@@ -77,6 +76,5 @@ defmodule Todo.Cache do
   defp_testable stop() do
     cache_pid = Process.whereis(__MODULE__)
     GenServer.cast(cache_pid, {:close_all_process})
-    Todo.Database.stop_all_db()
   end
 end
