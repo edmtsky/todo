@@ -7,6 +7,8 @@ defmodule Todo.Cache do
     GenServer.start_link(__MODULE__, nil, name: __MODULE__)
   end
 
+  # return pid of Todo.Server
+  @spec server_process(todo_list_name :: String.t()) :: pid
   def server_process(todo_list_name) do
     GenServer.call(__MODULE__, {:server_process, todo_list_name})
   end
@@ -52,16 +54,6 @@ defmodule Todo.Cache do
     end
   end
 
-  @impl GenServer
-  def handle_cast({:close_all_process}, todo_servers) do
-    todo_servers
-    |> Enum.each(fn {_todo_list_name, todo_server_pid} ->
-      GenServer.stop(todo_server_pid, :normal)
-    end)
-
-    {:stop, :normal, %{}}
-  end
-
   # testing-only Client API
 
   @doc """
@@ -73,8 +65,11 @@ defmodule Todo.Cache do
     GenServer.call(cache_pid, {:close_process, todo_list_name})
   end
 
+  @doc """
+  terminate Cache and all it childrens(todo-servers)
+  since the cache is under the supervisor, it will be automatically restarted
+  """
   defp_testable stop() do
-    cache_pid = Process.whereis(__MODULE__)
-    GenServer.cast(cache_pid, {:close_all_process})
+    Process.exit(Process.whereis(__MODULE__), :kill)
   end
 end
