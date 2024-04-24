@@ -1,5 +1,5 @@
-defmodule Todo.ProcessRegistry do
 
+defmodule Todo.ProcessRegistry do
   # Client API
 
   def start_link do
