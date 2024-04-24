@@ -1,6 +1,8 @@
 defmodule Todo.IntegrationTest do
   use ExUnit.Case, async: false
 
+  @app_name :todo
+
   setup do
     Todo.Database.cleanup_disk()
     :ok
@@ -8,9 +10,12 @@ defmodule Todo.IntegrationTest do
 
   describe "Todo.System, Todo.ProcessRegistry, Todo.Cache, Todo.Database" do
     test "serialize & deserialize data to the disk" do
+      Application.stop(@app_name)
+
       proc_cnt_1 = length(Process.list())
-      {:ok, supervisor} = Todo.System.start_link()
-      Process.sleep(250)
+
+      Application.start(@app_name)
+      # {:ok, supervisor} = Todo.System.start_link(); Process.sleep(250)
       cache_1 = Process.whereis(Todo.Cache)
 
       mylist = Todo.Cache.server_process("mylist")
@@ -32,8 +37,8 @@ defmodule Todo.IntegrationTest do
       # Todo how to check is supervisor is alive?
       assert [{_pid, nil}] = Todo.Database.lookup(1)
 
-      Supervisor.stop(supervisor)
-      Process.sleep(250)
+      # Supervisor.stop(supervisor); Process.sleep(250)
+      Application.stop(@app_name)
 
       # ensure off
       assert false == Process.alive?(mylist)
@@ -43,8 +48,8 @@ defmodule Todo.IntegrationTest do
       assert proc_cnt_1 == proc_cnt_2
 
       # restart the system
-      {:ok, _supervisor} = Todo.System.start_link()
-      Process.sleep(250)
+      # {:ok, _supervisor} = Todo.System.start_link(); Process.sleep(250)
+      Application.start(@app_name)
       cache_2 = Process.whereis(Todo.Cache)
       assert true == is_pid(cache_2)
       assert cache_2 != cache_1

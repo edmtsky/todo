@@ -8,8 +8,6 @@ defmodule Todo.Database do
   Supervisor of Todo.DatabaseWorker`s
   """
 
-  defp file_name(key), do: Path.join(@db_directory, to_string(key))
-
   # Client API
 
   def start_link() do
@@ -55,29 +53,14 @@ defmodule Todo.Database do
   # --------------------------------------------------------------------------
   #                            testing helpers
 
-  @doc """
-  remove all files from persist directory "ceanup all db-records"
-  """
+  @compile {:nowarn_unused_function, [cleanup_disk: 0]}
+  # remove all files from persist directory "ceanup all db-records"
   defp_testable cleanup_disk() do
     {:ok, files} = File.ls(@db_directory)
 
     files
-    |> Enum.each(fn name -> File.rm!(file_name(name)) end)
-  end
-
-  # --------------------------------------------------------------------------
-  #                            testing helpers
-
-  # to find db_woker_pid by db_worker_id
-  defp_testable lookup(worker_id) do
-    Registry.lookup(Todo.ProcessRegistry, {Todo.DatabaseWorker, worker_id})
-  end
-
-  # show inner state map of ID -> worker_pid
-  defp_testable workers() do
-    for worker_id <- 1..@pool_size, into: %{} do
-      [{worker_pid, _value}] = lookup(worker_id)
-      {worker_id, worker_pid}
-    end
+    |> Enum.each(fn name ->
+      File.rm!(Path.join(@db_directory, to_string(name)))
+    end)
   end
 end
