@@ -5,7 +5,7 @@ defmodule Todo.Server do
   use GenServer, restart: :temporary
   use Todo.Utils
 
-  @expiry_idle_timeout :timer.seconds(10)
+  @expiry_idle_timeout :timer.seconds(1800) # 30 minutes
 
   # Client API
 

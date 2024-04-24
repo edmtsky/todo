@@ -4,7 +4,7 @@ defmodule TodoTest do
   @app_name :todo
 
   setup do
-    Todo.Database.cleanup_disk()
+    Todo.ATestHelper.cleanup_db()
     Application.ensure_started(@app_name)
     :ok
   end

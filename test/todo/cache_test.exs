@@ -4,7 +4,7 @@ defmodule Todo.CacheTest do
   @app_name :todo
 
   setup do
-    Todo.Database.cleanup_disk()
+    Todo.ATestHelper.cleanup_db()
     Application.ensure_started(@app_name)
     :ok
   end
@@ -80,7 +80,8 @@ defmodule Todo.CacheTest do
     assert bobs_list_pid != bobs_list_pid3
 
     assert false == Process.alive?(bobs_list_pid)
-    assert true == Process.alive?(alices_list_pid)  # not affected
+    # not affected
+    assert true == Process.alive?(alices_list_pid)
   end
 
   describe "tooling" do

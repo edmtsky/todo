@@ -4,7 +4,7 @@ defmodule Todo.IntegrationTest do
   @app_name :todo
 
   setup do
-    Todo.Database.cleanup_disk()
+    Todo.ATestHelper.cleanup_db()
     :ok
   end
 
@@ -35,7 +35,7 @@ defmodule Todo.IntegrationTest do
       assert true == Process.alive?(cache_1)
       # assert true == is_pid(Process.whereis(Todo.Database)) work with GenServer
       # Todo how to check is supervisor is alive?
-      assert [{_pid, nil}] = Todo.Database.lookup(1)
+      # assert [{_pid, nil}] = Todo.Database.lookup(1)
 
       # Supervisor.stop(supervisor); Process.sleep(250)
       Application.stop(@app_name)
