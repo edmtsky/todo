@@ -41,11 +41,9 @@ defmodule Todo.Cache do
   # --------------------------------------------------------------------------
   #                            testing helpers
 
-  @doc """
-  terminate Cache and all it childrens(todo-servers)
-  since the cache is under the supervisor, it will be automatically restarted
-  """
-  defp_testable stop() do
-    Process.exit(Process.whereis(__MODULE__), :kill)
-  end
+  # terminate Cache and all it childrens(todo-servers)
+  # since the cache is under the supervisor, it will be automatically restarted
+  # defp_testable stop() do
+  #   Process.exit(Process.whereis(__MODULE__), :kill)
+  # end
 end

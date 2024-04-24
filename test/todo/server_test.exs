@@ -1,16 +1,17 @@
 defmodule TodoTest do
   use ExUnit.Case, async: false
 
+  @app_name :todo
+
   setup do
     Todo.Database.cleanup_disk()
+    Application.ensure_started(@app_name)
     :ok
   end
 
   test "smoke test(initial)" do
-    Todo.ProcessRegistry.start_link()
-    Process.sleep(250)
-    Todo.Database.start_link()
-    Process.sleep(250)
+    # Todo.ProcessRegistry.start_link(); Process.sleep(250)
+    # Todo.Database.start_link(); Process.sleep(250)
 
     {:ok, todo_server} = Todo.Server.start_link("mylist")
 

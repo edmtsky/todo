@@ -2,14 +2,34 @@ defmodule Todo.DatabaseTest do
   use ExUnit.Case, async: false
   alias Todo.Database, as: DB
 
+  @app_name :todo
+  @pool_size 3
+
   setup do
     DB.cleanup_disk()
-    Todo.ProcessRegistry.start_link()
-    Process.sleep(200)
-    Todo.Database.start_link()
-    Process.sleep(200)
+    Application.ensure_started(@app_name)
+    # Todo.ProcessRegistry.start_link(); Process.sleep(200)
+    # Todo.Database.start_link(); Process.sleep(200)
     :ok
   end
+
+  # test helpers
+
+  # to find db_woker_pid by db_worker_id
+  defp lookup(worker_id) do
+    Registry.lookup(Todo.ProcessRegistry, {Todo.DatabaseWorker, worker_id})
+  end
+
+  # to show inner state map of ID -> worker_pid
+  defp workers() do
+    for worker_id <- 1..@pool_size, into: %{} do
+      [{worker_pid, _value}] = lookup(worker_id)
+      {worker_id, worker_pid}
+    end
+  end
+
+  # --
+
 
   test "tooling workers to check correctness of the db startup" do
     workers = Todo.Database.workers()

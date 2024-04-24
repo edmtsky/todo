@@ -1,9 +1,14 @@
 defmodule Todo.SystemTest do
   use ExUnit.Case, async: false
 
+  @app_name :todo
+
   describe "Todo.system" do
     test "link all processes in one tree" do
+      Application.stop(@app_name)
+
       Todo.System.start_link()
+      Process.sleep(100)
       bobs_list1 = Todo.Cache.server_process("Bob's list")
       processes_cnt = length(Process.list())
 

@@ -1,17 +1,22 @@
 defmodule Todo.DatabaseWorkerTest do
   use ExUnit.Case, async: false
-  # import Todo.DatabaseWorker
+
+  @app_name :todo
   @db_directory "./persist"
 
   setup do
     Todo.Database.cleanup_disk()
-    Todo.ProcessRegistry.start_link()
+    Application.ensure_started(@app_name)
+    # Todo.ProcessRegistry.start_link()  was necessary before add OTP-aplication
     :ok
   end
 
   test "serialize & desirialize data to disk" do
     worker_id = 1
-    {:ok, pid} = Todo.DatabaseWorker.start_link({@db_directory, worker_id})
+    # {:ok, pid} = Todo.DatabaseWorker.start_link({@db_directory, worker_id})
+
+    {:error, {:already_started, pid}} =
+      Todo.DatabaseWorker.start_link({@db_directory, worker_id})
 
     # serialize to disk
     Todo.DatabaseWorker.store(worker_id, "name", {:data, :some_value})
