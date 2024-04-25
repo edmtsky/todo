@@ -1,4 +1,3 @@
-
 defmodule Todo.ProcessRegistry do
   # Client API
 

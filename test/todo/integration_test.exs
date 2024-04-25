@@ -25,9 +25,11 @@ defmodule Todo.IntegrationTest do
         %{date: ~D[2024-04-17], title: "Programming"}
       )
 
+      Process.sleep(100)
+
       entries = Todo.Server.entries(mylist, ~D[2024-04-17])
       assert [%{id: 1, date: ~D[2024-04-17], title: "Programming"}] == entries
-      assert File.exists?("persist/mylist")
+      assert Todo.ATestHelper.todo_list_file_exists?("mylist")
 
       # emulate a system shutdown, keep data on the disk
 
@@ -56,7 +58,7 @@ defmodule Todo.IntegrationTest do
       # assert true == is_pid(Process.whereis(Todo.Database)) ??
 
       # TODO fix issue with parallel test runs and deleting data from the db
-      assert File.exists?("persist/mylist")
+      assert Todo.ATestHelper.todo_list_file_exists?("mylist")
       mylist_2 = Todo.Cache.server_process("mylist")
       entries_2 = Todo.Server.entries(mylist_2, ~D[2024-04-17])
 

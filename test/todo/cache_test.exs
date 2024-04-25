@@ -40,12 +40,13 @@ defmodule Todo.CacheTest do
   end
 
   test "persistence" do
-    john = Todo.Cache.server_process("john")
+    list_name = "john"
+    john = Todo.Cache.server_process(list_name)
     Todo.Server.add_entry(john, %{date: ~D[2024-04-20], title: "Shopping"})
     assert 1 == length(Todo.Server.entries(john, ~D[2024-04-20]))
 
     Process.sleep(200)
-    assert File.exists?("persist/john")
+    assert Todo.ATestHelper.todo_list_file_exists?(list_name)
 
     # emulate system restart
     # Supervisor.stop(supervisor)
@@ -53,10 +54,10 @@ defmodule Todo.CacheTest do
     Process.exit(john, :kill)
     Process.sleep(100)
 
-    assert File.exists?("persist/john")
+    assert Todo.ATestHelper.todo_list_file_exists?(list_name)
 
     entries =
-      "john"
+      list_name
       |> Todo.Cache.server_process()
       |> Todo.Server.entries(~D[2024-04-20])
 

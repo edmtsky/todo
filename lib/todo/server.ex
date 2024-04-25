@@ -5,8 +5,6 @@ defmodule Todo.Server do
   use GenServer, restart: :temporary
   use Todo.Utils
 
-  @expiry_idle_timeout :timer.seconds(1800) # 30 minutes
-
   # Client API
 
   def start_link(name) do
@@ -46,49 +44,53 @@ defmodule Todo.Server do
   def handle_continue(:init, {name, nil}) do
     todo_list = Todo.Database.get(name) || Todo.List.new()
     new_state = {name, todo_list}
-    {:noreply, new_state, @expiry_idle_timeout}
+    {:noreply, new_state, expiry_idle_timeout()}
   end
 
   @impl GenServer
   def handle_cast({:add_entry, new_entry}, {name, todo_list}) do
     new_list = Todo.List.add_entry(todo_list, new_entry)
     Todo.Database.store(name, new_list)
-    {:noreply, {name, new_list}, @expiry_idle_timeout}
+    {:noreply, {name, new_list}, expiry_idle_timeout()}
   end
 
   @impl GenServer
   def handle_cast({:delete_entry, entry_id}, {name, todo_list}) do
     new_list = Todo.List.delete_entry(todo_list, entry_id)
-    {:noreply, {name, new_list}, @expiry_idle_timeout}
+    {:noreply, {name, new_list}, expiry_idle_timeout()}
   end
 
   @impl GenServer
   def handle_cast({:update_entry, entry_id, updater_fun}, {name, todo_list}) do
     new_list = Todo.List.update_entry(todo_list, entry_id, updater_fun)
-    {:noreply, {name, new_list}, @expiry_idle_timeout}
+    {:noreply, {name, new_list}, expiry_idle_timeout()}
   end
 
   @impl GenServer
   def handle_cast(invalid_request, state) do
     dbg(invalid_request)
-    {:noreply, state, @expiry_idle_timeout}
+    {:noreply, state, expiry_idle_timeout()}
   end
 
   @impl GenServer
   def handle_call({:entries, date}, _from, {name, todo_list}) do
     entries = Todo.List.entries(todo_list, date)
-    {:reply, entries, {name, todo_list}, @expiry_idle_timeout}
+    {:reply, entries, {name, todo_list}, expiry_idle_timeout()}
   end
 
   @impl GenServer
   def handle_call(invalid_request, _from, state) do
     dbg(invalid_request)
-    {:replay, :invalid_request, state, @expiry_idle_timeout}
+    {:replay, :invalid_request, state, expiry_idle_timeout()}
   end
 
   @impl GenServer
   def handle_info(:timeout, {name, todo_list}) do
     dputs("Stopping to-do server for #{name}")
     {:stop, :normal, {name, todo_list}}
+  end
+
+  defp expiry_idle_timeout() do
+    Application.fetch_env!(:todo, :todo_server_expiry)
   end
 end

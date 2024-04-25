@@ -27,3 +27,4 @@ todo-*.tar
 
 # database files
 /persist/
+/test_persist/
